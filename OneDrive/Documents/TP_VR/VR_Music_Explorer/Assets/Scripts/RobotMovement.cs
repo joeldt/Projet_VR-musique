@@ -5,23 +5,32 @@ public class RobotMovement : MonoBehaviour
     public CharacterController controller;
     public Animator animator;
     public float speed = 5f;
-    public float rotationSpeed = 100f;
+    public float gravity = -9.81f;
+
+    private Vector3 velocity;
 
     void Update()
     {
-        // Récupérer les touches (Z,S,Q,D ou flèches)
-        float moveVertical = Input.GetAxis("Vertical");
-        float moveHorizontal = Input.GetAxis("Horizontal");
+        // 1. Récupération des entrées clavier (Z, S, Q, D)
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
 
-        // Rotation du robot
-        transform.Rotate(0, moveHorizontal * rotationSpeed * Time.deltaTime, 0);
+        // 2. Création du mouvement relatif à l'orientation du robot
+        Vector3 move = transform.right * x + transform.forward * z;
 
-        // Déplacement avant/arrière
-        Vector3 move = transform.forward * moveVertical;
+        // 3. Application du mouvement
         controller.Move(move * speed * Time.deltaTime);
 
-        // Envoyer l'information à l'Animator pour lancer la marche
-        bool isWalking = (moveVertical != 0);
+        // 4. Gestion de la gravité
+        if (controller.isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f;
+        }
+        velocity.y += gravity * Time.deltaTime;
+        controller.Move(velocity * Time.deltaTime);
+
+        // 5. Mise à jour de l'animation (isWalking)
+        bool isWalking = (Mathf.Abs(x) > 0.1f || Mathf.Abs(z) > 0.1f);
         animator.SetBool("isWalking", isWalking);
     }
 }
