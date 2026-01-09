@@ -11,17 +11,15 @@ public class RobotMovement : MonoBehaviour
 
     void Update()
     {
-        // 1. Récupération des entrées clavier (Z, S, Q, D)
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+        // Récupération des touches (Z,S,Q,D ou Flèches)
+        float x = Input.GetAxis("Horizontal"); // Q et D
+        float z = Input.GetAxis("Vertical");   // Z et S
 
-        // 2. Création du mouvement relatif à l'orientation du robot
+        // Calcul du mouvement relatif à l'orientation du robot
         Vector3 move = transform.right * x + transform.forward * z;
-
-        // 3. Application du mouvement
         controller.Move(move * speed * Time.deltaTime);
 
-        // 4. Gestion de la gravité
+        // Gravité
         if (controller.isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
@@ -29,8 +27,20 @@ public class RobotMovement : MonoBehaviour
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
 
-        // 5. Mise à jour de l'animation (isWalking)
-        bool isWalking = (Mathf.Abs(x) > 0.1f || Mathf.Abs(z) > 0.1f);
-        animator.SetBool("isWalking", isWalking);
+        // Gestion des ANIMATIONS (Marche avant / Marche arrière / Idle)
+
+        // Marche Avant : Si on pousse le joystick vers le haut (z > 0)
+        bool isWalkingForward = (z > 0.1f);
+        animator.SetBool("isWalking", isWalkingForward);
+
+        // Marche Arrière : Si on tire le joystick vers le bas (z < -0.1)
+        bool isBacking = (z < -0.1f);
+        animator.SetBool("isBacking", isBacking);
+
+        // Si on se déplace uniquement sur les côtés (Q ou D) sans avancer/reculer
+        if (Mathf.Abs(x) > 0.1f && Mathf.Abs(z) < 0.1f)
+        {
+            animator.SetBool("isWalking", true);
+        }
     }
 }
