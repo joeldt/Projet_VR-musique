@@ -1,0 +1,13 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Override_Holo_Rap
+  m_Controller: {fileID: 9100000, guid: 27155dd4d846f204dad4362e32d0ecf2, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 1a08db2b28607c243bafc1ef51d1709a, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 4840bcf683158b045b39bb2182adb3c3, type: 2}
