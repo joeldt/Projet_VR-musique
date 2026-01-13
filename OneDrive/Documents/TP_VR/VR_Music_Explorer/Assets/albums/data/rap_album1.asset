@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc0fc5a5b79d0834f8b92d8e7d730e0d, type: 3}
+  m_Name: rap_album1
+  m_EditorClassIdentifier: 
+  albumName: All Eyez on Me
+  description: "2pac-album hip-hop/gangsta rap sorti le 13 f\xE9vrier 1996"
+  coverTexture: {fileID: 2800000, guid: a56084c0348d4af48b321aa3aa95ebeb, type: 3}
+  audioClip: {fileID: 8300000, guid: 0956bde1c3d787d48b22a1caba3a4bfb, type: 3}

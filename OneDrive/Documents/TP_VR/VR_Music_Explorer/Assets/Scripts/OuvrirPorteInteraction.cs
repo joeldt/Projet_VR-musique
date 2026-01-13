@@ -9,28 +9,35 @@ public class OuvrirPorteInteraction : MonoBehaviour
     private bool isOpen = false;
 
     [Header("Configuration Hologramme")]
-    public Animator holoAnimator; // L'Animator de l'objet Hologramme spÈcifique ‡ cette porte
+    public GameObject hologramme;          // üî¥ CHANG√â : GameObject du hologramme
+    public Animator holoAnimator;           // Animator du hologramme (apparition / disparition)
 
-    [Header("Configuration CamÈra & Robot")]
-    public CameraFocusController camFocus; // Le script sur la Main Camera
-    public MonoBehaviour robotMovementScript; // Le script de marche du robot
-    public Transform maCibleCamera; //  ICI LE POINT "Cam_Cible_Holo" DE la porte
+    [Header("Configuration Cam√©ra & Robot")]
+    public CameraFocusController camFocus;
+    public MonoBehaviour robotMovementScript;
+    public Transform maCibleCamera;
+
+    void Start()
+    {
+        // üîí S√©curit√© : hologramme TOUJOURS d√©sactiv√© au d√©part
+        if (hologramme != null)
+            hologramme.SetActive(false);
+    }
 
     void Update()
     {
-        if (isPlayerInZone)
-        {
-            // Touche EntrÈe ou X pour OUVRIR
-            if ((Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.X)) && !isOpen)
-            {
-                OuvrirSequence();
-            }
+        if (!isPlayerInZone) return;
 
-            // Touche Y pour FERMER et QUITTER le mode Focus
-            if (Input.GetKeyDown(KeyCode.Y) && isOpen)
-            {
-                FermerSequence();
-            }
+        // OUVRIR la porte
+        if ((Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.X)) && !isOpen)
+        {
+            OuvrirSequence();
+        }
+
+        // FERMER la porte
+        if (Input.GetKeyDown(KeyCode.Y) && isOpen)
+        {
+            FermerSequence();
         }
     }
 
@@ -38,27 +45,34 @@ public class OuvrirPorteInteraction : MonoBehaviour
     {
         isOpen = true;
 
-        //  DÈsactiver l'interface "Appuyer sur X"
-        if (monInterface != null) monInterface.SetActive(false);
+        // D√©sactiver l'interface "Appuyez sur X"
+        if (monInterface != null)
+            monInterface.SetActive(false);
 
-        //  Lancer l'animation de la porte
+        // Animation porte
         porteAnimator.SetBool("isOpen", true);
 
-        //  Bloquer le mouvement du robot
-        if (robotMovementScript != null) robotMovementScript.enabled = false;
+        // Bloquer mouvement robot
+        if (robotMovementScript != null)
+            robotMovementScript.enabled = false;
 
-        //  Lancer l'hologramme et le focus camÈra (avec un lÈger retard pour laisser la porte s'ouvrir)
-        Invoke("DeclencherHolo", 0.5f);
+        // Activer l'hologramme apr√®s ouverture porte
+        Invoke(nameof(DeclencherHolo), 0.5f);
     }
 
     void DeclencherHolo()
     {
-        // On dÈclenche l'apparition de l'hologramme
-        if (holoAnimator != null) holoAnimator.SetTrigger("Apparition");
+        // ‚úÖ ACTIVER le GameObject hologramme
+        if (hologramme != null)
+            hologramme.SetActive(true);
 
+        // Animation apparition
+        if (holoAnimator != null)
+            holoAnimator.SetTrigger("Apparition");
+
+        // Focus cam√©ra
         if (camFocus != null)
         {
-            // On donne la cible spÈcifique de cette porte ‡ la camÈra avant d'activer le focus
             camFocus.positionHologramme = maCibleCamera;
             camFocus.ActiverFocus(true);
         }
@@ -66,24 +80,38 @@ public class OuvrirPorteInteraction : MonoBehaviour
 
     void FermerSequence()
     {
-        //  Faire rentrer l'hologramme
-        if (holoAnimator != null) holoAnimator.SetTrigger("Disparition");
+        // Animation disparition hologramme
+        if (holoAnimator != null)
+            holoAnimator.SetTrigger("Disparition");
 
-        //  Remettre la camÈra sur le robot
-        if (camFocus != null) camFocus.ActiverFocus(false);
+        // STOP AUDIO IMM√âDIAT
+        if (GlobalAudioPlayer.Instance != null)
+            GlobalAudioPlayer.Instance.Stop();
 
-        // Attendre que l'hologramme disparaisse pour fermer la porte et libÈrer le robot
-        Invoke("FinaliserFermeture", 1.0f);
+        // Retour cam√©ra
+        if (camFocus != null)
+            camFocus.ActiverFocus(false);
+
+        Invoke(nameof(FinaliserFermeture), 1.0f);
     }
 
     void FinaliserFermeture()
     {
         isOpen = false;
+
+        // Fermer porte
         porteAnimator.SetBool("isOpen", false);
 
-        // Redonner le contrÙle au joueur
-        if (robotMovementScript != null) robotMovementScript.enabled = true;
-        if (monInterface != null) monInterface.SetActive(true);
+        // ‚ùå D√©sactiver hologramme
+        if (hologramme != null)
+            hologramme.SetActive(false);
+
+        // Redonner contr√¥le robot
+        if (robotMovementScript != null)
+            robotMovementScript.enabled = true;
+
+        if (monInterface != null)
+            monInterface.SetActive(true);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -91,7 +119,8 @@ public class OuvrirPorteInteraction : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerInZone = true;
-            if (!isOpen && monInterface != null) monInterface.SetActive(true);
+            if (!isOpen && monInterface != null)
+                monInterface.SetActive(true);
         }
     }
 
@@ -100,7 +129,8 @@ public class OuvrirPorteInteraction : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerInZone = false;
-            if (monInterface != null) monInterface.SetActive(false);
+            if (monInterface != null)
+                monInterface.SetActive(false);
         }
     }
 }

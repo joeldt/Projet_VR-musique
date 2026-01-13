@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc0fc5a5b79d0834f8b92d8e7d730e0d, type: 3}
+  m_Name: hiphop_album3
+  m_EditorClassIdentifier: 
+  albumName: "Gunna \u2013 wgft (feat. Burna Boy)"
+  description: "Un des sons hiphop trap US qui a marqu\xE9 2025."
+  coverTexture: {fileID: 2800000, guid: fca5a21e57d1976458d79626192f4270, type: 3}
+  audioClip: {fileID: 8300000, guid: 2c0863c3f0ff7db4799185763d919c37, type: 3}

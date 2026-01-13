@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc0fc5a5b79d0834f8b92d8e7d730e0d, type: 3}
+  m_Name: rap_album3
+  m_EditorClassIdentifier: 
+  albumName: DNA
+  description: "Kendrick Lamar \u2013morceau \xE9nergique et incisif m\xEAlant Rap
+    politique et trap \u2014 sorti le 14 avril 2017"
+  coverTexture: {fileID: 2800000, guid: 7aebe83ec5d28e54aaf86d978f6ef969, type: 3}
+  audioClip: {fileID: 8300000, guid: 92c443169d968c64ab768c8639d88d20, type: 3}
