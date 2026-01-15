@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit; // Ajout nécessaire pour la VR
 
 public class OuvrirPorteInteraction : MonoBehaviour
 {
@@ -9,8 +10,8 @@ public class OuvrirPorteInteraction : MonoBehaviour
     private bool isOpen = false;
 
     [Header("Configuration Hologramme")]
-    public GameObject hologramme;          // 🔴 CHANGÉ : GameObject du hologramme
-    public Animator holoAnimator;           // Animator du hologramme (apparition / disparition)
+    public GameObject hologramme;
+    public Animator holoAnimator;
 
     [Header("Configuration Caméra & Robot")]
     public CameraFocusController camFocus;
@@ -19,22 +20,42 @@ public class OuvrirPorteInteraction : MonoBehaviour
 
     void Start()
     {
-        // 🔒 Sécurité : hologramme TOUJOURS désactivé au départ
         if (hologramme != null)
             hologramme.SetActive(false);
     }
 
+    // FONCTIONS POUR LA VR 
+
+    // Cette fonction sera liée au bouton X (Select)
+    public void OnPressX()
+    {
+        if (isPlayerInZone && !isOpen)
+        {
+            OuvrirSequence();
+        }
+    }
+
+    // Cette fonction sera liée au bouton Y (Cancel)
+    public void OnPressY()
+    {
+        if (isPlayerInZone && isOpen)
+        {
+            FermerSequence();
+        }
+    }
+
+    //LOGIQUE DE SEQUENCE 
+
     void Update()
     {
+        // On garde le clavier pour le débug sur PC
         if (!isPlayerInZone) return;
 
-        // OUVRIR la porte
         if ((Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.X)) && !isOpen)
         {
             OuvrirSequence();
         }
 
-        // FERMER la porte
         if (Input.GetKeyDown(KeyCode.Y) && isOpen)
         {
             FermerSequence();
@@ -44,33 +65,20 @@ public class OuvrirPorteInteraction : MonoBehaviour
     void OuvrirSequence()
     {
         isOpen = true;
-
-        // Désactiver l'interface "Appuyez sur X"
-        if (monInterface != null)
-            monInterface.SetActive(false);
-
-        // Animation porte
+        if (monInterface != null) monInterface.SetActive(false);
         porteAnimator.SetBool("isOpen", true);
 
-        // Bloquer mouvement robot
         if (robotMovementScript != null)
             robotMovementScript.enabled = false;
 
-        // Activer l'hologramme après ouverture porte
         Invoke(nameof(DeclencherHolo), 0.5f);
     }
 
     void DeclencherHolo()
     {
-        // ✅ ACTIVER le GameObject hologramme
-        if (hologramme != null)
-            hologramme.SetActive(true);
+        if (hologramme != null) hologramme.SetActive(true);
+        if (holoAnimator != null) holoAnimator.SetTrigger("Apparition");
 
-        // Animation apparition
-        if (holoAnimator != null)
-            holoAnimator.SetTrigger("Apparition");
-
-        // Focus caméra
         if (camFocus != null)
         {
             camFocus.positionHologramme = maCibleCamera;
@@ -80,15 +88,11 @@ public class OuvrirPorteInteraction : MonoBehaviour
 
     void FermerSequence()
     {
-        // Animation disparition hologramme
-        if (holoAnimator != null)
-            holoAnimator.SetTrigger("Disparition");
+        if (holoAnimator != null) holoAnimator.SetTrigger("Disparition");
 
-        // STOP AUDIO IMMÉDIAT
         if (GlobalAudioPlayer.Instance != null)
             GlobalAudioPlayer.Instance.Stop();
 
-        // Retour caméra
         if (camFocus != null)
             camFocus.ActiverFocus(false);
 
@@ -98,21 +102,16 @@ public class OuvrirPorteInteraction : MonoBehaviour
     void FinaliserFermeture()
     {
         isOpen = false;
-
-        // Fermer porte
         porteAnimator.SetBool("isOpen", false);
+        if (hologramme != null) hologramme.SetActive(false);
 
-        // ❌ Désactiver hologramme
-        if (hologramme != null)
-            hologramme.SetActive(false);
-
-        // Redonner contrôle robot
         if (robotMovementScript != null)
             robotMovementScript.enabled = true;
 
-        if (monInterface != null)
-            monInterface.SetActive(true);
+        if (monInterface != null) monInterface.SetActive(true);
     }
+
+    //  DETECTION DE ZONE 
 
     private void OnTriggerEnter(Collider other)
     {
