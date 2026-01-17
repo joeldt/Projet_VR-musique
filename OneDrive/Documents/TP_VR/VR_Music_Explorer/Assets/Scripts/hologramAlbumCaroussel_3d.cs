@@ -1,131 +1,114 @@
 using UnityEngine;
 using TMPro;
-using UnityEngine.InputSystem; // Indispensable pour les nouvelles actions
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.InputSystem;
 
 public class HologramAlbumCarousel_3D : MonoBehaviour
 {
-    [Header("Albums")]
+    [Header("Albums Data")]
     public AlbumData[] albums;
 
-    [Header("Renderers")]
+    [Header("VR Inputs")]
+    public InputActionProperty triggerDroit; 
+    public InputActionProperty boutonA;       
+    public InputActionProperty boutonX;       
+    public Transform mainDroite;            
+
+    [Header("Renderers (Visuels)")]
     public Renderer albumGauche;
     public Renderer albumCentre;
     public Renderer albumDroite;
 
-    [Header("UI")]
-    public TMP_Text infoText;
+    [Header("UI System")]
+    public GameObject canvasDetails; //  Canvas Ã  afficher/cacher
+    public TMP_Text detailText;      // Le texte Ã  l'intÃ©rieur du Canvas Details
 
-    [Header("VR Inputs (Mains)")]
-    public InputActionProperty triggerAction; // Gâchette Droite (Maintien)
-    public InputActionProperty swipeAction;   // Joystick Droit (Balayage)
-
-    [Header("Actions Boutons Spécifiques")]
-    public InputActionProperty buttonAAction; // Bouton A (Infos)
-    public InputActionProperty buttonYAction; // Bouton Y (Fermer)
-
-    [Header("Lien Porte")]
-    public OuvrirPorteInteraction scriptPorte; // Pour fermer la porte via Y
+    [Header("ParamÃ¨tres Swipe")]
+    public float seuilBalayage = 0.15f;
 
     private int index = 0;
-    private bool isActive = false;
-    private bool hasSwiped = false;
+    private bool isSwiping = false;
+    private Vector3 startSwipePos;
 
-    void Start()
+    void OnEnable()
     {
-        if (infoText != null) infoText.gameObject.SetActive(false);
+        if (triggerDroit.action != null) triggerDroit.action.Enable();
+        if (boutonA.action != null) boutonA.action.Enable();
+        if (boutonX.action != null) boutonX.action.Enable();
+        
+        if (canvasDetails != null) canvasDetails.SetActive(false);
         UpdateAlbums();
-    }
-
-    void OnEnable() { isActive = true; }
-    void OnDisable()
-    {
-        isActive = false;
-        if (GlobalAudioPlayer.Instance != null) GlobalAudioPlayer.Instance.Stop();
     }
 
     void Update()
     {
-        if (!isActive) return;
-
-        // 1. GESTION DU BALAYAGE (TRIGGER + JOYSTICK DROIT)
-        HandleSwipeNavigation();
-
-        // 2. DETECTION DU BOUTON A (Main Droite)
-        if (buttonAAction.action.WasPressedThisFrame())
+        //  SWIPE
+        if (triggerDroit.action != null && triggerDroit.action.IsPressed())
         {
-            ToggleInfo();
+            if (!isSwiping) { isSwiping = true; startSwipePos = mainDroite.position; }
+            else { CheckSwipe(); }
         }
+        else { isSwiping = false; }
 
-        // 3. DETECTION DU BOUTON Y (Main Gauche)
-        if (buttonYAction.action.WasPressedThisFrame())
-        {
-            OnPressY();
-        }
+        //  MUSIQUE (A)
+        if (boutonA.action != null && boutonA.action.triggered) { PlayPause(); }
 
-        // On garde le bouton X via l'interactable ou on peut l'ajouter ici aussi :
-        // if (Input.GetKeyDown(KeyCode.X)) PlayPause(); 
+        // INFOS : Affiche/Cache le Canvas Details
+        if (boutonX.action != null && boutonX.action.triggered) { ToggleInfo(); }
     }
 
-    void HandleSwipeNavigation()
+    void CheckSwipe()
     {
-        float triggerValue = triggerAction.action.ReadValue<float>();
-        Vector2 swipeValue = swipeAction.action.ReadValue<Vector2>();
-
-        if (triggerValue > 0.5f) // Si gâchette maintenue
+        if (mainDroite == null) return;
+        float deltaX = mainDroite.position.x - startSwipePos.x;
+        if (Mathf.Abs(deltaX) > seuilBalayage)
         {
-            if (!hasSwiped)
-            {
-                if (swipeValue.x > 0.7f) { NextAlbum(); hasSwiped = true; }
-                else if (swipeValue.x < -0.7f) { PreviousAlbum(); hasSwiped = true; }
-            }
-        }
-        else
-        {
-            hasSwiped = false; // Reset quand on relâche
+            if (deltaX > 0) NextAlbum(); else PreviousAlbum();
+            startSwipePos = mainDroite.position; 
         }
     }
 
-    public void OnPressX() // Appelée par l'événement Select Entered de la zone
+    public void NextAlbum()
     {
-        if (!isActive) return;
-        PlayPause();
+        index = (index + 1) % albums.Length;
+        UpdateAlbums();
+        if (canvasDetails != null) canvasDetails.SetActive(false); // Cache les infos au changement
     }
 
-    public void OnPressY()
+    public void PreviousAlbum()
     {
-        if (!isActive) return;
-        if (scriptPorte != null) scriptPorte.OnPressY();
+        index--;
+        if (index < 0) index = albums.Length - 1;
+        UpdateAlbums();
+        if (canvasDetails != null) canvasDetails.SetActive(false);
     }
-
-    // --- LOGIQUE INTERNE ---
-    void NextAlbum() { index = (index + 1) % albums.Length; UpdateAlbums(); HideInfo(); }
-    void PreviousAlbum() { index--; if (index < 0) index = albums.Length - 1; UpdateAlbums(); HideInfo(); }
 
     void UpdateAlbums()
     {
         if (albums == null || albums.Length == 0) return;
         int left = (index - 1 + albums.Length) % albums.Length;
         int right = (index + 1) % albums.Length;
+
         albumGauche.material.mainTexture = albums[left].coverTexture;
         albumCentre.material.mainTexture = albums[index].coverTexture;
         albumDroite.material.mainTexture = albums[right].coverTexture;
     }
 
-    void PlayPause()
+    public void PlayPause()
     {
-        if (albums == null || albums.Length == 0) return;
-        AudioClip clip = albums[index].audioClip;
-        if (clip != null) GlobalAudioPlayer.Instance.Toggle(clip);
+        if (albums[index].audioClip != null && GlobalAudioPlayer.Instance != null)
+            GlobalAudioPlayer.Instance.Toggle(albums[index].audioClip);
     }
 
-    void ToggleInfo()
+    public void ToggleInfo()
     {
-        if (infoText == null) return;
-        bool active = !infoText.gameObject.activeSelf;
-        infoText.gameObject.SetActive(active);
-        if (active) infoText.text = albums[index].albumName + "\n\n" + albums[index].description;
-    }
+        if (canvasDetails == null || detailText == null) return;
 
-    void HideInfo() { if (infoText != null) infoText.gameObject.SetActive(false); }
+        bool isCurrentlyActive = canvasDetails.activeSelf;
+        canvasDetails.SetActive(!isCurrentlyActive);
+
+        if (!isCurrentlyActive) // Si on vient de l'allumer
+        {
+            detailText.text = "<b>" + albums[index].albumName + "</b>\n\n" + albums[index].description;
+        }
+    }
 }

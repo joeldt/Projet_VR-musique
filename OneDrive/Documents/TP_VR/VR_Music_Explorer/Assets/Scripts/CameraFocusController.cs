@@ -2,28 +2,30 @@ using UnityEngine;
 
 public class CameraFocusController : MonoBehaviour
 {
-    public Transform positionNormale;    // Doit Ítre un point attachÈ au Robot
-    public Transform positionHologramme; // Le point devant l'hologramme
+    [Header("R√©glages Focus VR")]
+    public Transform cameraOffset;       // Camera Offset du XR Origin
+    public Transform positionNormale;    // Point de repos du Camera Offset
+    public Transform positionHologramme; // Le point envoy√© par la porte
     public float vitesseTransition = 5f;
 
     [SerializeField] private bool focusOnHolo = false;
 
-    void LateUpdate() // On utilise LateUpdate pour Èviter les saccades
+    void LateUpdate()
     {
-        // Choisir la cible
+        // On choisit la cible 
         Transform cible = focusOnHolo ? positionHologramme : positionNormale;
 
-        if (cible != null)
+        if (cible != null && cameraOffset != null)
         {
-            // DÈplacement fluide vers la cible
-            transform.position = Vector3.Lerp(transform.position, cible.position, Time.deltaTime * vitesseTransition);
-            transform.rotation = Quaternion.Slerp(transform.rotation, cible.rotation, Time.deltaTime * vitesseTransition);
+            // On d√©place Camera Offset pour que la cam√©ra suive
+            cameraOffset.position = Vector3.Lerp(cameraOffset.position, cible.position, Time.deltaTime * vitesseTransition);
+            cameraOffset.rotation = Quaternion.Slerp(cameraOffset.rotation, cible.rotation, Time.deltaTime * vitesseTransition);
         }
     }
 
     public void ActiverFocus(bool etat)
     {
         focusOnHolo = etat;
-        Debug.Log("Focus Camera : " + etat); // VÈrifie dans la console si Áa s'affiche quand tu appuies sur Y
+        Debug.Log("Focus Camera VR : " + etat);
     }
 }
